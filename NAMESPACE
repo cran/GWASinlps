@@ -1,0 +1,3 @@
+exportPattern("^[[:alpha:]]+")
+import(mombf)
+importFrom("stats", "cor", "na.omit", "lm", "rbeta", "rbinom", "rnorm", "glm", "sd", "dnorm", "uniroot", "pnorm", "nlminb", "coef", "binomial", "residuals")
