@@ -1,4 +1,4 @@
-nlpsLM = function( x, y, prior, tau, priorDelta = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = FALSE )
+nlpsLM = function( y, x, prior, tau, priorDelta = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = F, tau.hs.method = "halfCauchy", sigma.hs.method = "Jeffreys" )
 { 
   corr.xy = sapply( as.data.frame(x), function(x) cor(x, y, use = "pairwise.complete.obs") )  # find corr of all x's with y
 
@@ -26,11 +26,28 @@ nlpsLM = function( x, y, prior, tau, priorDelta = modelbbprior(1,1), k0, rxx, ni
 
     if( length(names.xx.input) != 0  )  # if there is some input x
     {
-      if( prior == "mom" ) bb = modelSelection( y, x = x[ , colnames(x) %in% names.xx.input ], priorCoef = momprior(tau=tau), priorDelta = priorDelta, niter = niter, center = T, scale = T, verbose=F )  # NLP-MCMC with those vars only
-      if( prior == "imom" ) bb = modelSelection( y, x = x[ , colnames(x) %in% names.xx.input ], priorCoef = imomprior(tau=tau), priorDelta = priorDelta, niter = niter, center = T, scale = T, verbose=F )  # NLP-MCMC with those vars only
+      if( prior == "mom" ) 
+      {
+        bb = modelSelection( y, x = x[ , colnames(x) %in% names.xx.input, drop=F ], priorCoef = momprior(tau=tau), priorDelta = priorDelta, niter = niter, center = T, scale = T, verbose=F )  # NLP-MCMC with those vars only
+        hppm[[i]] = names.xx.input [ which( bb $ postMode == 1 ) ] # collect the HPPM vars
+      } else
+      if( prior == "imom" ) 
+      {
+        bb = modelSelection( y, x = x[ , colnames(x) %in% names.xx.input, drop=F ], priorCoef = imomprior(tau=tau), priorDelta = priorDelta, niter = niter, center = T, scale = T, verbose=F )  # NLP-MCMC with those vars only
+        hppm[[i]] = names.xx.input [ which( bb $ postMode == 1 ) ] # collect the HPPM vars
+      } else
+      if( prior == "zellner" ) 
+      {
+        bb = modelSelection( y, x = x[ , colnames(x) %in% names.xx.input, drop=F ], priorCoef = zellnerprior(tau=tau), priorDelta = priorDelta, niter = niter, center = T, scale = T, verbose=F )  # NLP-MCMC with those vars only
+        hppm[[i]] = names.xx.input [ which( bb $ postMode == 1 ) ] # collect the HPPM vars
+      } else
       # emom not yet implemented in modelSelection. Also, emomLM won't run with only one x variable.
-      if( prior == "zellner" ) bb = modelSelection( y, x = x[ , colnames(x) %in% names.xx.input ], priorCoef = zellnerprior(tau=tau), priorDelta = priorDelta, niter = niter, center = T, scale = T, verbose=F )  # NLP-MCMC with those vars only
-      hppm[[i]] = names.xx.input [ which( bb $ postMode == 1 ) ] # collect the HPPM vars 
+      if( prior == "horseshoe" ) 
+      {
+        fit = horseshoe(y, x[ , colnames(x) %in% names.xx.input, drop=F ], method.tau = tau.hs.method, method.sigma = sigma.hs.method)
+        fitsel = HS.var.select(fit, y, "intervals")
+        hppm[[i]] = names.xx.input [ which( fitsel == 1 ) ]
+      }
       if( verbose == T) cat( "selected :", hppm[[i]], "\n")  # print the HPPM vars
     }
   }

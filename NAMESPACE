@@ -1,3 +1,4 @@
 exportPattern("^[[:alpha:]]+")
 import(mombf)
+import(horseshoe)
 importFrom("stats", "cor", "na.omit", "lm", "rbeta", "rbinom", "rnorm", "glm", "sd", "dnorm", "uniroot", "pnorm", "nlminb", "coef", "binomial", "residuals")

@@ -1,0 +1,11 @@
+GWASinlps v1.1 (Release Date: 2018-02-01)
+================
+
+Changes from v1.0:
+
+- We have included the option to use 'horseshoe' prior within our iterative structured screen-and-select framework. 
+
+- We have included the option to output selected variables after every skipping, by introducing an argument 'skip.return' in the GWASinlps function.
+
+- For reproducibility, we have included an argument 'seed' in the GWASinlps function, allowing the user to set the random seed at the beginning of GWASinlps procedure.
+
