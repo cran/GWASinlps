@@ -4,6 +4,7 @@ nlpsLM = function( y, x, prior, tau, priorDelta = modelbbprior(1,1), k0, rxx, ni
 
   names(corr.xy) = colnames(x)
 
+  k0 = min(k0,ncol(x)) #if x has only 1 snp, but k0=2, then just reset k0=1
   names.sorted.corr.xy = names( sort( abs(corr.xy), decreasing = T ) [1:k0] )  # find x's with top k0 corrs
 
   hppm = list()

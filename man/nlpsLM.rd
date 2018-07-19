@@ -4,7 +4,7 @@
  
 \title{Nonlocal prior based single-step SNP selection for Genome-wide association study data with continuous phenotype}
 
-\description{Performs variable selection for continuous phenotypes in a single iteration, combining the computational efficiency of the screen-and-select approach based on some association learning and the parsimonious uncertainty quantification provided by the use of nonlocal priors, as described in Sanyal et al. (2018) [submitted]
+\description{Performs variable selection for continuous phenotypes in a single iteration, combining the computational efficiency of the screen-and-select approach based on some association learning and the parsimonious uncertainty quantification provided by the use of nonlocal priors, as described in Sanyal et al. (2018)
 }
 
 \usage{
@@ -37,10 +37,10 @@ A list with elements
 }
 
 \references{
-Sanyal et al. (2018), "GWASinlps: Nonlocal prior based iterative SNP selection tool for genome-wide association studies" [submitted].
+Sanyal et al. (2018), "GWASinlps: Nonlocal prior based iterative SNP selection tool for genome-wide association studies".
 }
 
-\author{Nilotpal Sanyal <nisanyal@ucsd.edu>}
+\author{Nilotpal Sanyal <nilotpal.sanyal@gmail.com>}
 % \note{}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 

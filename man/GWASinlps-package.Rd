@@ -6,7 +6,7 @@
 
 \title{Nonlocal prior based iterative SNP selection tool for genome-wide association study data}
 
-\description{Performs variable selection with data from Genome-wide association studies (GWAS) combining, in an iterative variable selection framework, the computational efficiency of the screen-and-select approach based on some association learning and the parsimonious uncertainty quantification provided by the use of nonlocal priors, as described in Sanyal et al. (2018) [submitted].}
+\description{Performs variable selection with data from Genome-wide association studies (GWAS) combining, in an iterative variable selection framework, the computational efficiency of the screen-and-select approach based on some association learning and the parsimonious uncertainty quantification provided by the use of nonlocal priors, as described in Sanyal et al. (2018).}
 
 \details{
 \tabular{ll}{
@@ -20,12 +20,12 @@ License: \tab GPL (>= 2)\cr
 %~~ important functions ~~
 }
 
-\author{Nilotpal Sanyal <nisanyal@ucsd.edu>
+\author{Nilotpal Sanyal <nilotpal.sanyal@gmail.com>
 
-Maintainer: Nilotpal Sanyal <nisanyal@ucsd.edu>
+Maintainer: Nilotpal Sanyal <nilotpal.sanyal@gmail.com>
 }
 
 
 \references{
-Sanyal et al. (2018), "GWASinlps: Nonlocal prior based iterative SNP selection tool for genome-wide association studies" [submitted].
+Sanyal et al. (2018), "GWASinlps: Nonlocal prior based iterative SNP selection tool for genome-wide association studies".
 }
