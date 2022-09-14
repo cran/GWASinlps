@@ -3,64 +3,116 @@
 \alias{GWASinlps}
 %- Also NEED an '\alias' for EACH other topic documented here.
 
-\title{Nonlocal prior based iterative SNP selection for Genome-wide association study data}
+\title{Non-local prior based iterative variable selection for GWAS data, or other high-dimensional data}
 
-\description{Performs variable selection with data from Genome-wide association studies (GWAS) combining in an iterative variable selection framework, the computational efficiency of the screen-and-select approach based on some association learning and the parsimonious uncertainty quantification provided by the use of nonlocal priors, as described in Sanyal et al. (2018).}
+\description{\code{GWASinlps} performs variable selection with data from Genome-wide association studies (GWAS), or other high-dimensional data, combining in an iterative framework, the computational efficiency of the screen-and-select variable selection approach based on some association learning and the parsimonious uncertainty quantification provided by the use of non-local priors as described in Sanyal et al. (2019).
+}
 
 \usage{
-GWASinlps(y, x, family="normal", mmle=NULL, prior, tau, priorDelta = modelbbprior(1,1), 
-          k0, m, rxx, nskip = 3, niter = 2000, verbose = F, skip.return = F, 
-          seed = NULL, tau.hs.method = "halfCauchy", sigma.hs.method = "Jeffreys")
+GWASinlps(
+  y, 
+  x, 
+  family = c("normal","binomial"),
+  method = c("rigorous","quick"),
+  cor_xy = NULL,
+  mmle_xy = NULL,
+  prior = c("mom", "imom", "zellner", "horseshoe"), 
+  tau, 
+  priorDelta = modelbbprior(1,1), 
+  k0, 
+  m, 
+  rxx, 
+  nskip = 3, 
+  niter = 2000, 
+  verbose = FALSE, 
+  seed = NULL, 
+  tau.hs.method = "halfCauchy", 
+  sigma.hs.method = "Jeffreys"
+)
 }
-%- maybe also 'usage' for other objects documented here.
 
 \arguments{
-  \item{y}{The vector of the continuous or binary phenotype values.}
-  \item{x}{The SNP genotype matrix with subjects represented by rows and SNPs represented by columns. The elements of x should be of numeric type. Missing values are currently not accepted.}
-  \item{family}{"normal" for continuous data (default), "binomial" for binary data.}
-  \item{mmle}{Optional, and only relevnt if family=="binomial". If mmle is not input, it will be computed. Useful to input for the sake of time if running the function multiple times.}
-  \item{prior}{"mom" for pMOM prior, "imom" for piMOM prior, "zellner" for Zellner's g-prior, "horseshoe" for horseshoe prior. When family=="binomial", only "pMOM" is available.}
-  \item{tau}{the value of the scale parameter tau of the nonlocal prior. }
-  \item{priorDelta}{Prior for model space. Defaults to modelbbprior(1,1), which is beta-binomial(1,1) prior.}
-  \item{k0}{GWASinlps tuning parameter, denoting the number of leading SNPs (see References).}
+  \item{y}{The vector of continuous or binary response (phenotype). Binary response values must be 0 or 1.}
+  \item{x}{The design matrix with subjects in rows and independent variables (SNPs) in columns. Missing values are not accepted currently.}
+  \item{family}{\code{"normal"} for continuous data, \code{"binomial"} for binary data (logit link is used).}
+  \item{method}{Applies only when \code{family="binomial"}. The \code{rigorous} method uses logistic regression based analysis which is theoretically appropriate but can be slow. The \code{quick} method uses a curious combination of linear model and logistic regression based analyses and is considerably faster. See Details.}
+  \item{cor_xy}{Used only when \code{family="normal"}. Vector of (Pearson) correlation coefficients of \code{y} with the individual columns of \code{x}.}
+  \item{mmle_xy}{Used only when \code{family="binomial"}. Vector of maximum marginal likelihood estimates of the regression parameters corresponding to the \code{x} variables (SNPs). These are obtained from GLM fits of \code{y} with the individual columns of \code{x} including an intercept.}
+  \item{prior}{\code{"mom"} for pMOM prior, \code{"imom"} for piMOM prior, \code{"zellner"} for Zellner's g-prior, \code{"horseshoe"} for horseshoe prior. For \code{family="binomial"}, \code{"zellner"} considers group Zellner prior and \code{"horseshoe"} is not available.}
+  \item{tau}{The value of the scale parameter tau of the non-local prior. }
+  \item{priorDelta}{Prior for model space. Defaults to \code{modelbbprior(1,1)}, which is beta-binomial(1,1) prior.}
+  \item{k0}{GWASinlps tuning parameter denoting the number of leading SNPs (see Details).}
   \item{m}{GWASinlps tuning parameter, denoting the maximum number of SNPs to be selected.}
-  \item{rxx}{GWASinlps tuning parameter, denoting the correlation threshold to determine leading sets (see References)}
-  \item{nskip}{GWASinlps tuning parameter, denoting the maximum allowed count of skipping an iteration selecting no SNPs (see References).}
-  \item{niter}{Number of MCMC iterations for nonlocal prior based Bayesian variable selection. Defaults to 2000.}
-  \item{verbose}{If TRUE, prints some details. FALSE by default.}
-  \item{skip.return}{False by default. If True, returns the set of selected variables after each skipping, else returns the final set of selected variables.}
-  \item{seed}{Optional. If supplied, the random seed is set to this value at the beginning for reproducibility.}
-  \item{tau.hs.method}{Optional. Necessary only when prior=="horseshoe".}
-  \item{sigma.hs.method}{Optional. Necessary only when prior=="horseshoe".}
+  \item{rxx}{GWASinlps tuning parameter denoting the correlation threshold to determine leading sets (see References).}
+  \item{nskip}{GWASinlps tuning parameter denoting the maximum allowed count of skipping an iteration that does not select any variable (SNP) (see References).}
+  \item{niter}{Number of MCMC iterations for non-local prior based Bayesian variable selection. Defaults to 2000.}
+  \item{verbose}{If TRUE, prints result from the iterations progressively. FALSE by default.}
+  \item{seed}{For reproducibility. If provided, the random seed is set to this value at the beginning of the function.}
+  \item{tau.hs.method}{Necessary only when \code{prior="horseshoe"}. See \code{horseshoe} function reference.}
+  \item{sigma.hs.method}{Necessary only when \code{prior="horseshoe"}. See \code{horseshoe} function reference.}
 }
 
-\details{The GWASinlps method selects SNPs iteratively. For continuous response (phenotype), the procedure starts with an initial set of SNPs, a SNP genotype matrix x and a phenotype vector y. An iteration proceeds by determining the k0 \emph{leading SNPs} having the highest association with y. The measure of association is absolute value of the Pearson's correlation coefficient for continuous phenotype. These k0 leading SNPs, in turn, determine k0 \emph{leading sets}, where each leading set consists of all SNPs with absolute correlation coefficient more than or equal to rxx with the correspondng leading SNP. Then within each leading set, non-local prior based Bayesian variable selection is run (using package mombf) and the predictors appearing in the HPPM are considered selected in the current iteration. Thus, a single SNP can be selected from multiple leading sets. The selected predictors are regressed out from y. The predictors which are included in one or more \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. With updated y and SNP set, next iteration follows similarly. The procedure continues until the stopping point, determined by the GWASinlps tuning parameters m, rxx, and nskip, is reached. For more details, see the References.)
+\details{The GWASinlps method selects variables (SNPs) iteratively. 
 
-For binary response (phenotype), the procedure starts with an initial set of SNPs, a SNP genotype matrix x and a phenotype vector y. Unlike the continuous phenotype case, here, before proceeding into iterative selection, a pre-iteration step is conducted. In the pre-iteration step, we determine k0_aux SNPs having the highest association with y when the measure of association is the absolute value of the maximum marginal likelihood coefficient, run non-local prior based Bayesian variable selection for binary phenotype (using package mombf) with those k0_aux SNPs, and select those SNPs whose marginal posterior probability of inclusion is more than 0.5. If none of those k0_aux SNPs is selected, we consider the next k0_aux SNPs association-wise, and do the same. This process is repeated until at least one SNP is selected. The pre-iteration step ends when at least one SNP is selected. Then, we update y by the deviance residuals obtained from a glm regression of y on the SNPs selected in the pre-iteratin step. These deviance residuals are continuous. With these updated continuous y, we conduct GWASinlps based variable selection for continuous phenotypes as mentioned before. The final selection of SNPs for the binary response case is the SNPs selected in pre-iteration step plus the SNPs selected based on deviance residuals. Currently, k0_aux is set as 1.}
+\subsection{For continuous response}{
+
+For continuous response (phenotype), the procedure starts with an initial set of independent variables (SNPs), a design matrix (SNP genotype matrix) \code{x} and a response (phenotype) vector \code{y}. 
+
+    - An iteration proceeds by determining the \code{k0} \emph{leading SNPs} having the highest association with \code{y}. The measure of association is the absolute value of the Pearson's correlation coefficient \code{cor_xy}. These \code{k0} leading SNPs, in turn, determine \code{k0} \emph{leading sets}, where each leading set consists of all SNPs with absolute correlation coefficient more than or equal to \code{rxx} with the correspondng leading SNP.
+
+    - Within each leading set, non-local prior based Bayesian variable selection for linear models is performed (using package \pkg{mombf}). The variables (SNPs) appearing in the highest posterior probability model (HPPM) are considered selected in the current iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The selected variables (SNPs) are regressed out from \code{y} using \code{lm} fit. The variables (SNPs) that are included in one or more of the \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. 
+
+    - With updated \code{y} and variable (SNP) set, next iteration proceeds similarly. And so on like this. The procedure continues until the stopping point, which is determined by the GWASinlps tuning parameters \code{m}, \code{rxx}, and \code{nskip}, is reached. For more details, see References.
+}
+
+
+\subsection{For binary response}{
+
+For binary response (phenotype), the procedure starts with an initial set of variables (SNPs), a design matrix (SNP genotype matrix) \code{x} and a binary response (phenotype) vector \code{y}. If \code{method="rigorous"},
+
+    - The first iteration proceeds by determining the \code{k0} \emph{leading SNPs} having the highest association with \code{y}. The measure of association is the absolute value of the maximum marginal likelihood estimate \code{mmle_xy}. These \code{k0} leading SNPs, in turn, determine \code{k0} \emph{leading sets}, where each leading set consists of all SNPs with absolute correlation coefficient more than or equal to \code{rxx} with the correspondng leading SNP. 
+
+    - Within each leading set, non-local prior based Bayesian variable selection for logistic regression model is performed (using package \pkg{mombf}). The variables (SNPs) appearing in the HPPM are considered selected in the first iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The variables (SNPs) which are included in one or more \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. After this, the selected variables (SNPs) are accounted for by including them in \code{glm} fits of \code{y} with each of the remaining variables (SNPs). The \code{glm} coefficients of the remaining variables, thus obtained, reflect their contribution in presence of the selected variables (SNPs) of the first iteration. 
+
+    - Considering the absolute values of these \code{glm} coefficients as the measure of association, we proceed with the second iteration with updated variable (SNP) set. And so on in this manner. The procedure continues until the stopping point, which is determined by the GWASinlps tuning parameters \code{m}, \code{rxx}, and \code{nskip}, is reached.
+
+    If \code{method="quick"}, the procedure is similar to above except at the following points. In this method, non-local prior based Bayesian variable selection using logistic regression model is performed until one or more variables (SNP) are selected in an iteration. Until a variable is selected, there is no need to account for anything, so the initial maximum marginal likelihood estimates continue to be used. After the first selections (if any) are made, a \code{glm} fit of \code{y} on the selected variables is performed and the deviance residuals are computed. In the subsequent iterations, considering these (continuous) deviance residuals as response, non-local prior based Bayesian variable selection for linear models is performed till the stopping point is reached.
+}
+
+
+\subsection{}{
+For horseshoe prior, package \pkg{horseshoe} is used.
+}
+
+}
+
 
 \value{
-If skip.return == F (default), then 
-  \item{selected }{The vector of GWASinlps selected predictors, in the iterational order they were selected. }
-If skip.return == T, then a list
-  \item{selected }{A list, whose length is equal to the number of times skipping took place, and whose elements are the vectors of selected predictors, in the iterational order they were selected, after every skipping. }
+  A list containing
+    \item{selected }{Vector with names of the GWASinlps selected variables (SNPs) in the order they were selected. }
+    \item{selected_iterwise }{List with selected variables (SNPs) from each iteration. }
 }
 
 \references{
-Sanyal et al. (2018), "GWASinlps: Nonlocal prior based iterative SNP selection tool for genome-wide association studies".
+Sanyal et al. (2019), "GWASinlps: Non-local prior based iterative SNP selection tool for genome-wide association studies". Bioinformatics, 35(1), 1-11.
 }
 
-\author{Nilotpal Sanyal <nilotpal.sanyal@gmail.com>}
 
-% \note{}
+\seealso{
+\code{\link{nlpsLM}}, \code{\link{nlpsGLM}}, \code{\link[mombf]{modelSelection}}, \code{\link[horseshoe]{horseshoe}}
+} 
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+
+\author{Nilotpal Sanyal <nilotpal.sanyal@gmail.com>
+}
+
 
 \examples{
-%\dontrun{
-p = 1000; n = 200
+n = 200
+p = 1000
 m = 10
 
-# Generate SNP genotype matrix
+# Generate design matrix (genotype matrix)
 set.seed(1) 
 f = runif( p, .1, .2 ) # simulate minor allele frequency
 x = matrix( nrow = n, ncol = p )
@@ -68,34 +120,41 @@ colnames(x) = 1:p
 for(j in 1:p)
   x[,j] = rbinom( n, 2, f[j] )
 
-# Generate data
+# Generate true effect sizes
 causal_snps = sample( 1:p, m )
 beta = rep( 0, p )
 set.seed(1)
 beta[causal_snps] = rnorm(m, mean = 0, sd = 2 )
+
+# Generate continuous (phenotype) data
 y = x \%*\% beta + rnorm(n, 0, 1) 
 
 # Fix scale parameter tau 
 tau = 0.2
 
-# Perform GWASinlps
-inlps = GWASinlps(y, x, prior = "mom", tau = tau, k0 = 1, m = 50, 
-        rxx = .2)
-cat( "GWASinlps selected", length(inlps), "SNPs with", length(intersect(inlps, causal_snps)), 
-     "true positives." )
+# GWASinlps analysis
+inlps = GWASinlps(y, x, family="normal", prior="mom", tau=tau, k0=1, m=50, 
+        rxx=0.2)
+cat( "GWASinlps selected", length(inlps$selected), "SNPs with", 
+    length(intersect(inlps$selected, causal_snps)), "true positive(s) and",
+    length(setdiff(causal_snps, inlps$selected)), "false negative(s) out  
+    of a pool of", p, "SNPs with data from", n, "persons." )
 
 # Compare with LASSO
 library(glmnet)
 fit.cvlasso = cv.glmnet( x, y, alpha = 1 )
 l.min = fit.cvlasso $lambda.min # lambda that gives minimum cvm
+l.1se = fit.cvlasso $lambda.1se  # largest lambda such that error is 
+                                 # within 1 se of the minimum
+
 lasso_min = which( as.vector( coef( fit.cvlasso, s = l.min ) )[-1] != 0 )  
 cat( "LASSO with lambda.min selected", length(lasso_min), "SNPs with", 
-     length(intersect(lasso_min, causal_snps)), "true positives." )
+     length(intersect(lasso_min, causal_snps)), "true positives and",
+    length(setdiff(causal_snps, inlps$selected)), "false negative(s)." )
 
-l.1se = fit.cvlasso $lambda.1se  # largest lambda such that error is within 1 se of the minimum
 lasso_1se = which( as.vector( coef( fit.cvlasso, s = l.1se ) )[-1] != 0 )
 cat( "LASSO with lambda.1se selected", length(lasso_1se), "SNPs with", 
-     length(intersect(lasso_1se, causal_snps)), "true positives." )
-%}
+     length(intersect(lasso_1se, causal_snps)), "true positives and",
+    length(setdiff(causal_snps, inlps$selected)), "false negative(s)." )
 }
 
