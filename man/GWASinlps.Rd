@@ -96,9 +96,8 @@ For survival data, the procedure starts with an initial set of variables (SNPs),
 }
 
 
-\subsection{ }{
 For horseshoe prior, package \pkg{horseshoe} is used.
-}
+
 
 }
 
