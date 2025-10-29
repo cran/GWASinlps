@@ -1,3 +1,7 @@
+# GWASinlps v2.4
+
+* The dependence on the 'horseshoe' package is removed as that package is archived on CRAN.
+
 # GWASinlps v2.3
 
 * Insignificant minor technical update.

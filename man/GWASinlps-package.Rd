@@ -13,8 +13,8 @@
 \tabular{ll}{
 Package: \tab GWASinlps\cr
 Type: \tab Package\cr
-Version: \tab 2.3\cr
-Date: \tab 2024-10-19\cr
+Version: \tab 2.4\cr
+Date: \tab 2025-10-29\cr
 License: \tab GPL (>= 2)\cr
 }
 
