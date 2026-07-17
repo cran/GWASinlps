@@ -11,16 +11,16 @@
 
 \usage{
 nlpsLM(y, x, cor_xy, prior = c("mom", "imom", "emom", "zellner", 
-  "horseshoe"), tau, priorDelta = modelbbprior(1,1), 
+  "horseshoe"), tau, priorModel = modelbbprior(1,1), 
   k0, rxx, niter = 2000, verbose = F, 
   tau.hs.method = "halfCauchy", sigma.hs.method = "Jeffreys" )
 
 nlpsGLM(y, x, mmle_xy, prior = c("mom", "imom", "zellner"), 
-  tau, priorDelta = modelbbprior(1,1), 
+  tau, priorModel = modelbbprior(1,1), 
   k0, rxx, niter = 2000, verbose = F )
 
 nlpsAFTM(y, event, x, mu_xy, prior = c("mom", "imom", "emom", 
-  "zellner"), tau, priorDelta = modelbbprior(1,1), 
+  "zellner"), tau, priorModel = modelbbprior(1,1), 
   k0, rxx, niter = 2000, verbose = F )
 }
 
@@ -33,7 +33,7 @@ nlpsAFTM(y, event, x, mu_xy, prior = c("mom", "imom", "emom",
   \item{mu_xy}{Only for AFTM. Vector of marginal utility estimates of the variables (SNPs) in \code{x}. These may be obtained by fitting AFT model to \code{y} with individual columns of \code{x} using the \code{survreg} function of the package \code{survival}. }
   \item{prior}{\code{"mom"} for pMOM prior, \code{"imom"} for piMOM prior, \code{"emom"} for peMOM prior, \code{"zellner"} for Zellner's g-prior. For GLM, \code{"zellner"} considers group Zellner prior and \code{"emom"} is not available. \code{"horseshoe"} is deprecated because the upstream package is archived on CRAN. }
   \item{tau}{the value of the scale parameter tau of the non-local prior. }
-  \item{priorDelta}{Prior for model space. Defaults to \code{modelbbprior(1,1)}, which is beta-binomial(1,1) prior.}
+  \item{priorModel}{Prior for model space. Defaults to \code{modelbbprior(1,1)}, which is beta-binomial(1,1) prior.}
   \item{k0}{GWASinlps tuning parameter denoting the number of leading SNPs (see Details).}
   \item{rxx}{GWASinlps tuning parameter denoting the correlation threshold to determine leading sets (see References).}
   \item{niter}{Number of MCMC iterations for non-local prior based Bayesian variable selection. Defaults to 2000.}
@@ -61,7 +61,7 @@ Sanyal, N. (2022). "Iterative variable selection for high-dimensional data with 
 }
 
 \seealso{
-\code{\link{GWASinlps}}, \code{\link[mombf]{modelSelection}}
+\code{\link{GWASinlps}}, \code{\link[modelSelection]{modelSelection}}
 }
 
 \examples{

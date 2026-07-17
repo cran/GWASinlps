@@ -1,4 +1,4 @@
-GWASinlps = function( y, event, x, family=c("normal","binomial","survival"), method=c("rigorous","quick"), cor_xy=NULL, mmle_xy=NULL, mu_xy=NULL, prior=c("mom", "imom", "emom", "zellner", "horseshoe"), tau, priorDelta = modelbbprior(1,1), k0, m, rxx, nskip = 3, niter = 2000, verbose = FALSE, seed = NULL, tau.hs.method = "halfCauchy", sigma.hs.method = "Jeffreys" )
+GWASinlps = function( y, event, x, family=c("normal","binomial","survival"), method=c("rigorous","quick"), cor_xy=NULL, mmle_xy=NULL, mu_xy=NULL, prior=c("mom", "imom", "emom", "zellner", "horseshoe"), tau, priorModel = modelbbprior(1,1), k0, m, rxx, nskip = 3, niter = 2000, verbose = FALSE, seed = NULL, tau.hs.method = "halfCauchy", sigma.hs.method = "Jeffreys" )
 {
 	if(family == "normal")
 	{
@@ -303,7 +303,7 @@ GWASinlps = function( y, event, x, family=c("normal","binomial","survival"), met
 	}    
 }
 
-nlpsLM = function( y, x, cor_xy, prior = c("mom", "imom", "emom", "zellner", "horseshoe"), tau, priorDelta = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = F, 
+nlpsLM = function( y, x, cor_xy, prior = c("mom", "imom", "emom", "zellner", "horseshoe"), tau, priorModel = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = F, 
 	# kept for backward compatibility only; ignored
 	tau.hs.method = "halfCauchy", sigma.hs.method = "Jeffreys" )
 { 	
@@ -354,7 +354,7 @@ nlpsLM = function( y, x, cor_xy, prior = c("mom", "imom", "emom", "zellner", "ho
 
 		if(length(names_xx_input))  # if there is some input x
 		{
-			bb = modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = prior_coef_obj, priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+			bb = modelSelection::modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = prior_coef_obj, priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 			hppm[[i]] = names_xx_input[ which(bb $ postMode == 1) ] # collect the HPPM vars
 				
 			# if(prior == "horseshoe") 
@@ -372,7 +372,7 @@ nlpsLM = function( y, x, cor_xy, prior = c("mom", "imom", "emom", "zellner", "ho
 	return( list( hppm = unlist(hppm), not.selected = names_xx_not_selected ) )
 }
 
-nlpsGLM = function( y, x, mmle_xy, prior = c("mom", "imom", "zellner"), tau, priorDelta = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = F )
+nlpsGLM = function( y, x, mmle_xy, prior = c("mom", "imom", "zellner"), tau, priorModel = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = F )
 { 
 	k0 = min(k0,ncol(x)) #if x has only 1 snp, but k0=2, then just reset k0=1
 	names_sorted_mmle_xy = names( sort( abs(mmle_xy), decreasing = T ) [1:k0] )  # find x's with top k0 cors
@@ -398,21 +398,21 @@ nlpsGLM = function( y, x, mmle_xy, prior = c("mom", "imom", "zellner"), tau, pri
 		{
 			if(prior == "mom") 
 			{
-				bb = modelSelection( y, x = x[, names_xx_input, drop=F], family="binomial", priorCoef = momprior(tau=tau), priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+				bb = modelSelection::modelSelection( y, x = x[, names_xx_input, drop=F], family="binomial", priorCoef = momprior(tau=tau), priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 				hppm[[i]] = names_xx_input[ which(bb $ postMode == 1) ] # collect the HPPM vars
 			} else
 			#
 			#
 			if(prior == "imom") 
 			{
-				bb = modelSelection( y, x = x[, names_xx_input, drop=F], family="binomial", priorCoef = imomprior(tau=tau), priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+				bb = modelSelection::modelSelection( y, x = x[, names_xx_input, drop=F], family="binomial", priorCoef = imomprior(tau=tau), priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 				hppm[[i]] = names_xx_input [ which(bb $ postMode == 1) ] # collect the HPPM vars
 			} else
 			#
 			#
 			if(prior == "zellner") 
 			{
-				bb = modelSelection( y, x = x[, names_xx_input, drop=F], family="binomial", priorCoef = zellnerprior(tau=tau), priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+				bb = modelSelection::modelSelection( y, x = x[, names_xx_input, drop=F], family="binomial", priorCoef = zellnerprior(tau=tau), priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 				hppm[[i]] = names_xx_input [ which(bb $ postMode == 1) ] # collect the HPPM vars
 			} 
 			if(verbose) cat( "selected :", hppm[[i]], "\n")  # print the HPPM vars
@@ -424,7 +424,7 @@ nlpsGLM = function( y, x, mmle_xy, prior = c("mom", "imom", "zellner"), tau, pri
 	return( list( hppm = unlist(hppm), not.selected = names_xx_not_selected ) )
 }
 
-nlpsAFTM = function( y, event, x, mu_xy, prior = c("mom", "imom", "emom", "zellner"), tau, priorDelta = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = F )
+nlpsAFTM = function( y, event, x, mu_xy, prior = c("mom", "imom", "emom", "zellner"), tau, priorModel = modelbbprior(1,1), k0, rxx, niter = 2000, verbose = F )
 { 	
 	k0 = min(k0,ncol(x)) #if x has only 1 snp, but k0=2, then just reset k0=1
 	names_sorted_mu_xy = names( sort( mu_xy, decreasing = T ) [1:k0] )  # find x's with top k0 cors
@@ -450,28 +450,28 @@ nlpsAFTM = function( y, event, x, mu_xy, prior = c("mom", "imom", "emom", "zelln
 		{
 			if(prior == "mom") 
 			{
-				bb = modelSelection( y = Surv(y, event), x = x[, names_xx_input, drop=F], family="normal", priorCoef = momprior(tau=tau), priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+				bb = modelSelection::modelSelection( y = Surv(y, event), x = x[, names_xx_input, drop=F], family="normal", priorCoef = momprior(tau=tau), priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 				hppm[[i]] = names_xx_input[ which(bb $ postMode == 1) ] # collect the HPPM vars
 			} else
 			#
 			#
 			if(prior == "imom") 
 			{
-				bb = modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = imomprior(tau=tau), priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+				bb = modelSelection::modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = imomprior(tau=tau), priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 				hppm[[i]] = names_xx_input [ which(bb $ postMode == 1) ] # collect the HPPM vars
 			} else
 			#
 			#
 			if(prior == "emom") 
 			{
-				bb = modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = emomprior(tau=tau), priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+				bb = modelSelection::modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = emomprior(tau=tau), priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 				hppm[[i]] = names_xx_input [ which(bb $ postMode == 1) ] # collect the HPPM vars
 			} else
 			#
 			#
 			if(prior == "zellner") 
 			{
-				bb = modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = zellnerprior(tau=tau), priorDelta = priorDelta, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
+				bb = modelSelection::modelSelection( y, x = x[, names_xx_input, drop=F], priorCoef = zellnerprior(tau=tau), priorModel = priorModel, niter = niter, center=T, scale=T, verbose=F )  # NLP-MCMC with those vars only
 				hppm[[i]] = names_xx_input [ which(bb $ postMode == 1) ] # collect the HPPM vars
 			} 
 			#

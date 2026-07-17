@@ -19,7 +19,7 @@ GWASinlps(
   mu_xy = NULL,
   prior = c("mom", "imom", "emom", "zellner", "horseshoe"), 
   tau, 
-  priorDelta = modelbbprior(1,1), 
+  priorModel = modelbbprior(1,1), 
   k0, 
   m, 
   rxx, 
@@ -43,7 +43,7 @@ GWASinlps(
   \item{mu_xy}{Used only when \code{family="survival"}. Vector of marginal utility estimates of the variables (SNPs) in \code{x}. These may be obtained by fitting AFT model to \code{y} with individual columns of \code{x} using the \code{survreg} function of the package \code{survival}.}
   \item{prior}{\code{"mom"} for pMOM prior, \code{"imom"} for piMOM prior, \code{"emom"} for peMOM prior, \code{"zellner"} for Zellner's g-prior. For GLM, \code{"zellner"} considers group Zellner prior and \code{"emom"} is not available. \code{"horseshoe"} is deprecated because the upstream package is archived on CRAN. }
   \item{tau}{The value of the scale parameter tau of the non-local prior. }
-  \item{priorDelta}{Prior for model space. Defaults to \code{modelbbprior(1,1)}, which is beta-binomial(1,1) prior.}
+  \item{priorModel}{Prior for model space. Defaults to \code{modelbbprior(1,1)}, which is beta-binomial(1,1) prior.}
   \item{k0}{GWASinlps tuning parameter denoting the number of leading SNPs/variables (see Details).}
   \item{m}{GWASinlps tuning parameter, denoting the maximum number of SNPs/variables to be selected.}
   \item{rxx}{GWASinlps tuning parameter denoting the correlation threshold to determine leading sets (see References).}
@@ -63,7 +63,7 @@ For continuous response (phenotype), the procedure starts with an initial set of
 
     - An iteration proceeds by determining the \code{k0} \emph{leading SNPs/variables} having the highest association with \code{y}. The measure of association is the absolute value of the Pearson's correlation coefficient \code{cor_xy}. These \code{k0} leading SNPs/variables, in turn, determine \code{k0} \emph{leading sets}, where each leading set consists of all SNPs/variables with absolute correlation coefficient more than or equal to \code{rxx} with the correspondng leading SNP/variable.
 
-    - Within each leading set, non-local prior based Bayesian variable selection for linear models is performed (using package \pkg{mombf}). The variables (SNPs) appearing in the highest posterior probability model (HPPM) are considered selected in the current iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The selected variables (SNPs) are regressed out from \code{y} using \code{lm} fit. The variables (SNPs) that are included in one or more of the \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. 
+    - Within each leading set, non-local prior based Bayesian variable selection for linear models is performed (using package \pkg{modelSelection}). The variables (SNPs) appearing in the highest posterior probability model (HPPM) are considered selected in the current iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The selected variables (SNPs) are regressed out from \code{y} using \code{lm} fit. The variables (SNPs) that are included in one or more of the \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. 
 
     - With updated \code{y} and variable (SNP) set, next iteration proceeds similarly. And so on like this. The procedure continues until the stopping point, which is determined by the GWASinlps tuning parameters \code{m}, \code{rxx}, and \code{nskip}, is reached. For more details, see References.
 }
@@ -75,7 +75,7 @@ For binary response (phenotype), the procedure starts with an initial set of var
 
     - The first iteration proceeds by determining the \code{k0} \emph{leading SNPs/variables} having the highest association with \code{y}. The measure of association is the absolute value of the maximum marginal likelihood estimate \code{mmle_xy}. These \code{k0} leading SNPs/variables, in turn, determine \code{k0} \emph{leading sets}, where each leading set consists of all SNPs/variables with absolute correlation coefficient more than or equal to \code{rxx} with the correspondng leading SNP. 
 
-    - Within each leading set, non-local prior based Bayesian variable selection for logistic regression model is performed (using package \pkg{mombf}). The variables (SNPs) appearing in the HPPM are considered selected in the first iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The variables (SNPs) which are included in one or more \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. After this, the selected variables (SNPs) are accounted for by including them in \code{glm} fits of \code{y} with each of the remaining variables (SNPs). The \code{glm} coefficients of the remaining variables, thus obtained, reflect their contribution in presence of the selected variables (SNPs) of the first iteration. 
+    - Within each leading set, non-local prior based Bayesian variable selection for logistic regression model is performed (using package \pkg{modelSelection}). The variables (SNPs) appearing in the HPPM are considered selected in the first iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The variables (SNPs) which are included in one or more \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. After this, the selected variables (SNPs) are accounted for by including them in \code{glm} fits of \code{y} with each of the remaining variables (SNPs). The \code{glm} coefficients of the remaining variables, thus obtained, reflect their contribution in presence of the selected variables (SNPs) of the first iteration. 
 
     - Considering the absolute values of these \code{glm} coefficients as the measure of association, we proceed with the second iteration with updated variable (SNP) set. And so on in this manner. The procedure continues until the stopping point, which is determined by the GWASinlps tuning parameters \code{m}, \code{rxx}, and \code{nskip}, is reached.
 
@@ -89,7 +89,7 @@ For survival data, the procedure starts with an initial set of variables (SNPs),
 
     - The first iteration proceeds by determining the \code{k0} \emph{leading SNPs/variables} having the highest association with \code{y}. The measure of association is the absolute value of the marginal utility \code{mu_xy}. These \code{k0} leading SNPs/variables, in turn, determine \code{k0} \emph{leading sets}, where each leading set consists of all SNPs with absolute correlation coefficient more than or equal to \code{rxx} with the correspondng leading SNP. 
 
-    - Within each leading set, non-local prior based Bayesian variable selection for accelerated failure time model is performed (using package \pkg{mombf}). The variables (SNPs) appearing in the HPPM are considered selected in the first iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The variables (SNPs) which are included in one or more \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. After this, to account for the selected variables (SNPs), conditional utilities of each of the remaining variables (SNPs) are computed in the presence of the selected variables (SNPs) in the model. These conditional utilities reflect the contribution of the remaining variables (SNPs) in presence of the selected variables (SNPs) of the first iteration. 
+    - Within each leading set, non-local prior based Bayesian variable selection for accelerated failure time model is performed (using package \pkg{modelSelection}). The variables (SNPs) appearing in the HPPM are considered selected in the first iteration. Note that a single variable (SNP) can be selected from multiple leading sets. The variables (SNPs) which are included in one or more \emph{leading sets} but do not appear in any HPPM are dropped from further analysis. After this, to account for the selected variables (SNPs), conditional utilities of each of the remaining variables (SNPs) are computed in the presence of the selected variables (SNPs) in the model. These conditional utilities reflect the contribution of the remaining variables (SNPs) in presence of the selected variables (SNPs) of the first iteration. 
 
     - Considering the absolute values of these conditional utilities as the measure of association, we proceed with the second iteration with updated variable (SNP) set. And so on in this manner. The procedure continues until the stopping point, which is determined by the GWASinlps tuning parameters \code{m}, \code{rxx}, and \code{nskip}, is reached.
 
@@ -114,7 +114,7 @@ Sanyal, N. (2022). "Iterative variable selection for high-dimensional data with 
 
 
 \seealso{
-\code{\link{nlpsLM}}, \code{\link{nlpsGLM}}, \code{\link{nlpsAFTM}}, \code{\link[mombf]{modelSelection}}
+\code{\link{nlpsLM}}, \code{\link{nlpsGLM}}, \code{\link{nlpsAFTM}}, \code{\link[modelSelection]{modelSelection}}
 } 
 
 

@@ -1,3 +1,7 @@
+# GWASinlps v2.5
+
+* The dependence on the 'mombf' package (deprecated) was shifted to dependence on 'modelSelection' package. The argument 'priorDelta' was renamed 'priorModel' everywhere.
+
 # GWASinlps v2.4
 
 * The dependence on the 'horseshoe' package is removed as that package is archived on CRAN.
